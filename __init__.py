@@ -1,3 +1,3 @@
-from .main import GroupManager
+from .main import EssenceManager
 
-__all__ = ["GroupManager"]
+__all__ = ["EssenceManager"]
