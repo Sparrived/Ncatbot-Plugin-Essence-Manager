@@ -16,8 +16,10 @@
 
 ## 🌟 功能亮点
 
+- ✅ **随机播送** - 随机发送一条群精华消息，活跃群聊氛围
 - ✅ **精华列表** - 查看群内所有精华消息，支持分页显示和一次性显示全部
 - ✅ **添加精华** - 支持通过消息ID或回复消息的方式添加精华消息
+- ✅ **删除精华** - 支持通过消息ID、回复消息或删除最近播送的精华消息
 - ✅ **订阅机制** - 通过白名单限制插件作用范围，避免对未关注群组产生影响
 - ✅ **权限检测** - 自动检测Bot权限，避免无权限操作导致的错误
 
@@ -67,14 +69,17 @@ cp -r plugins/essence_manager /path/to/your/ncatbot/plugins/
 ### 插件指令
 
 > **注意事项:**
-> - 所有指令仅限 NcatBot 管理员用户使用（`admin_group_filter` 限制）
-> - 添加精华消息需要机器人有群管理员权限
-> - 支持回复消息来快速添加精华（在 `add` 命令中）
+> - 除 `random` 指令外，其他指令仅限 NcatBot 管理员用户使用（`admin_group_filter` 限制）
+> - 添加/删除精华消息需要机器人有群管理员权限
+> - 支持回复消息来快速添加/删除精华（在 `add` 和 `remove` 命令中）
+> - ⚠️ **标注过久的精华消息可能无法通过接口删除，需要手动在群内删除**
 
 | 指令 | 参数 | 说明 | 示例 |
 | --- | --- | --- | --- |
+| `/essence random` | 无 | 随机发送一条群精华消息 | `/essence random` |
 | `/essence list [page] [-a\|--all]` | `page`：页码（可选，默认1）<br>`-a/--all`：显示所有消息 | 列出群内所有精华消息，支持分页或一次性显示全部 | `/essence list`<br>`/essence list 2`<br>`/essence list -a` |
 | `/essence add [mid]` | `mid`：消息ID（可选） | 添加群精华消息。可提供消息ID，或回复想要添加的消息 | `/essence add 1234567890`<br>回复消息后发送 `/essence add` |
+| `/essence remove [mid]` | `mid`：消息ID（可选） | 删除群精华消息。可提供消息ID、回复想要删除的消息，或删除最近播送的精华 | `/essence remove 1234567890`<br>回复消息后发送 `/essence remove`<br>播送后直接发送 `/essence remove` |
 | `/essence subscribe` | 无 | 订阅群组精华消息管理功能 | `/essence subscribe` |
 | `/essence unsubscribe` | 无 | 取消订阅群组精华消息管理功能 | `/essence unsubscribe` |
 | `/essence help [command]` | `command`：可选，指定命令名 | 显示所有可用指令或指定命令的详细说明 | `/essence help`<br>`/essence help list` |
@@ -87,6 +92,11 @@ cp -r plugins/essence_manager /path/to/your/ncatbot/plugins/
 - 插件在执行事件处理前，会先检查群组是否在 `subscribed_groups` 配置列表中
 - 对于未订阅的群组，插件会跳过处理，同时在日志中输出调试信息
 - 使用 `/essence subscribe` 可快速将当前群添加到白名单，无需重启机器人
+
+### 随机播送精华
+1. 从群内所有精华消息中随机选择一条
+2. 格式化显示发送者、时间和消息内容
+3. 记录本次播送的消息ID，方便后续快速删除
 
 ### 精华消息列表
 1. 调用平台接口获取群内所有精华消息
@@ -101,8 +111,16 @@ cp -r plugins/essence_manager /path/to/your/ncatbot/plugins/
 2. 添加前会检测Bot是否具有管理员权限
 3. 权限不足时会给出友好提示
 
+### 删除精华消息
+1. 支持三种方式删除精华：
+   - 直接提供消息ID：`/essence remove 消息ID`
+   - 回复要删除的消息后发送：`/essence remove`
+   - 使用 `random` 播送后直接发送：`/essence remove`（删除刚播送的精华）
+2. 删除前会检测Bot是否具有管理员权限
+3. ⚠️ **注意**：标注时间过久的精华消息可能因平台API限制无法删除，此时需要在群内手动删除
+
 ### 权限检测机制
-- **添加精华功能**: 要求Bot具有管理员或群主权限
+- **添加/删除精华功能**: 要求Bot具有管理员或群主权限
 - 执行前会自动检测权限，权限不足时会给出友好提示
 
 ## 🪵 日志与排错
@@ -130,12 +148,19 @@ grep "EssenceManager" logs/bot.log.2025_11_07
 - 确认消息ID是否正确
 - 如果使用回复方式，确保回复的是群内消息
 
+**Q: 删除精华失败？**
+- 确保机器人账号具有群管理员或群主权限
+- 确认消息ID是否正确
+- ⚠️ **标注时间过久的精华消息可能无法通过API删除**，这是平台限制，需要在群内手动删除
+
 **Q: 精华列表为空？**
 - 确认群内是否已设置精华消息
 - 检查 API 是否返回错误信息
 
-**Q: 如何快速添加精华消息？**
-- 直接回复想要添加的消息，然后发送 `/essence add` 即可
+**Q: 如何快速添加/删除精华消息？**
+- **添加**：直接回复想要添加的消息，然后发送 `/essence add` 即可
+- **删除**：直接回复想要删除的消息，然后发送 `/essence remove` 即可
+- **删除刚播送的精华**：使用 `/essence random` 播送后，直接发送 `/essence remove` 即可删除刚才播送的那条精华
 
 
 ## 🤝 贡献
