@@ -9,7 +9,7 @@ from ncatbot.plugin_system.builtin_plugin.unified_registry.command_system.regist
 from ncatbot.utils import get_log
 from ncatbot.core import GroupMessageEvent, MessageArray, Reply
 from typing import Optional
-from .utils import require_subscription, require_group_admin, at_check_support
+from .utils import require_subscription, require_group_admin
 
 import time
 import random
@@ -17,7 +17,7 @@ import random
 class EssenceManager(NcatBotPlugin):
 
     name = "EssenceManager"
-    version = "1.0.2"
+    version = "1.0.2-post1"
     author = "Sparrived"
     description = "一个用于管理群组精华消息的插件，支持随机播送精华消息，添加/删除精华消息。"
 
@@ -43,7 +43,7 @@ class EssenceManager(NcatBotPlugin):
     async def on_load(self):
         self.init_config()
         self._last_essence_id: dict[str, Optional[str]] = {}
-        self.log.info("GroupManager 插件已加载。")
+        self.log.info("EssenceManager 插件已加载。")
 
 
     # ======== 注册指令 ========
